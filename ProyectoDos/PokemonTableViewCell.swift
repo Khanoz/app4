@@ -23,13 +23,24 @@ class PokemonTableViewCell: UITableViewCell {
 
         // Configure the view for the selected state
     }
-    func setupView(pokemon: Pokemon){
+    func setupView(hero: Hero){
         loadingView.hidesWhenStopped = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0){
-            self.loadPokemon(pokemon: pokemon)
+            self.loadHero(hero: hero)
         }
-        self.texto.text = pokemon.name
-        loadPokemon(pokemon: pokemon)
+        self.texto.text = hero.name
+        loadHero(hero: hero)
+    }
+    func loadHero(hero: Hero){
+        self.loadingView.startAnimating()
+        self.imagen.isHidden = true
+        self.loadPokemonImage(urlImage: hero.url)
+            /*let task = URLSession.shared.dataTask(with: URL(string: hero.url)!) { data, response, error in
+                let pokemonDetail = try! JSONDecoder().decode(PokemonDetail.self, from: data!)
+                print(pokemonDetail)
+                self.loadPokemonImage(urlImage: pokemonDetail.sprites.other.home.front_default)
+            }
+            task.resume()*/
     }
     
     func loadPokemon(pokemon: Pokemon){

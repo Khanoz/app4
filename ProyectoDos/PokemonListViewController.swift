@@ -29,26 +29,65 @@ class GoToPokemon{
     }
 }
 
+struct Hero: Decodable {
+    var name: String
+    var url: String
+}
+
 class PokemonListViewController: UIViewController {
 
     @IBOutlet weak var loadingIndicatorView: UIActivityIndicatorView!
     @IBOutlet weak var pokemonTableView: UITableView!
     
     var pokemons: [Pokemon] = []
+    var heroes: [Hero] = []
+    var test: [String] = ["1", "2", "3"]
     var currentPokemon: Pokemon? = nil
+    var currentHero: Hero? = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        currentHero = Hero(name: "hola", url: "ad")
         pokemonTableView.register(UINib(nibName: "PokemonTableViewCell", bundle: nil), forCellReuseIdentifier: "pokemonCell")
         pokemonTableView.dataSource = self
         loadingIndicatorView.hidesWhenStopped = true
         loadingIndicatorView.startAnimating()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0){
-            self.loadPokemons()
+            //self.loadPokemons()
+            self.loadHeroes(index: 1)
         }
         pokemonTableView.delegate = self
 
+    }
+    
+    func loadHeroes(index: Int){
+        let urlBase = "https://www.superheroapi.com/api.php/423212276549393/\(index)/image"
+        
+        let listHeroEndPoint = URL.init(string: "\(urlBase)")!
+        print(listHeroEndPoint)
+        let task = URLSession.shared.dataTask(with: listHeroEndPoint){data, response, error in
+            if let data = data {
+                let jsonDecoder = JSONDecoder()
+                let result = try! jsonDecoder.decode(Hero.self, from: data)
+                self.heroes.append(result)
+                if(index == 5){
+                    self.currentHero = result
+                    DispatchQueue.main.sync {
+                        self.loadingIndicatorView.stopAnimating()
+                        self.pokemonTableView.reloadData()
+                    }
+                }
+                else{
+                    self.loadHeroes(index: index+1)
+                }
+            }
+        }
+        task.resume()
+        
+
+        print(self.heroes)
+        print(self.currentHero!)
     }
     
     func loadPokemons(){
@@ -80,7 +119,7 @@ class PokemonListViewController: UIViewController {
 
 extension PokemonListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return pokemons.count
+        return heroes.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -88,14 +127,14 @@ extension PokemonListViewController: UITableViewDataSource, UITableViewDelegate 
         if(cell == nil){
             cell = PokemonTableViewCell()
         }
-        let item = pokemons[indexPath.row]
+        let item = heroes[indexPath.row]
         //cell?.textLabel?.text = item.name
-        cell?.setupView(pokemon: item)
+        cell?.setupView(hero: item)
         return cell!
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        currentPokemon = pokemons[indexPath.row]
+        currentHero = heroes[indexPath.row]
         performSegue(withIdentifier: "especificPokemonSegue", sender: nil)
     }
 
